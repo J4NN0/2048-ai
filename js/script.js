@@ -1,56 +1,48 @@
-// 2048 Game UI Controller
 class Game2048UI {
     constructor() {
         this.gameContainer = document.querySelector('.game-container');
         this.scoreContainer = document.getElementById('score');
         this.gameMessageContainer = document.getElementById('game-message');
-        this.restartButton = document.getElementById('restart-btn'); // Will be null, that's ok
         this.retryButton = document.getElementById('retry-btn');
         this.keepPlayingButton = document.getElementById('keep-playing-btn');
-        
-        this.score = 0;
-        this.over = false;
-        this.won = false;
-        this.keepPlaying = false;
         
         this.tileContainer = document.getElementById('tile-container');
         this.tiles = [];
         
+        this.gameLogic = new Game2048Logic();
+        this.won = false;
+        this.keepPlaying = false;
+        
         this.bindEvents();
-        this.updateDisplay();
-        this.showStartingTiles();
+        this.startNewGame();
     }
 
     bindEvents() {
-        // Restart game (only if button exists)
-        if (this.restartButton) {
-            this.restartButton.addEventListener('click', () => this.restart());
-        }
         this.retryButton.addEventListener('click', () => this.restart());
         
         // Keep playing after winning
-        this.keepPlayingButton.addEventListener('click', () => this.keepPlaying());
+        this.keepPlayingButton.addEventListener('click', () => this.continueGame());
         
         // Keyboard controls
         document.addEventListener('keydown', (event) => {
-            if (this.over && !this.keepPlaying) return;
+            if (this.gameLogic.isGameOver() && !this.keepPlaying) return;
             
             switch(event.key) {
                 case 'ArrowUp':
                     event.preventDefault();
-                    this.simulateMove('up');
+                    this.makeMove('up');
                     break;
                 case 'ArrowDown':
                     event.preventDefault();
-                    this.simulateMove('down');
+                    this.makeMove('down');
                     break;
                 case 'ArrowLeft':
                     event.preventDefault();
-                    this.simulateMove('left');
+                    this.makeMove('left');
                     break;
                 case 'ArrowRight':
                     event.preventDefault();
-                    this.simulateMove('right');
+                    this.makeMove('right');
                     break;
             }
         });
@@ -59,7 +51,7 @@ class Game2048UI {
         let startX, startY;
         
         this.gameContainer.addEventListener('touchstart', (event) => {
-            if (this.over && !this.keepPlaying) return;
+            if (this.gameLogic.isGameOver() && !this.keepPlaying) return;
             
             const touch = event.touches[0];
             startX = touch.clientX;
@@ -68,7 +60,7 @@ class Game2048UI {
         });
         
         this.gameContainer.addEventListener('touchend', (event) => {
-            if (this.over && !this.keepPlaying) return;
+            if (this.gameLogic.isGameOver() && !this.keepPlaying) return;
             
             const touch = event.changedTouches[0];
             const endX = touch.clientX;
@@ -82,17 +74,17 @@ class Game2048UI {
             if (Math.abs(dx) > Math.abs(dy)) {
                 if (Math.abs(dx) > minSwipeDistance) {
                     if (dx > 0) {
-                        this.simulateMove('right');
+                        this.makeMove('right');
                     } else {
-                        this.simulateMove('left');
+                        this.makeMove('left');
                     }
                 }
             } else {
                 if (Math.abs(dy) > minSwipeDistance) {
                     if (dy > 0) {
-                        this.simulateMove('down');
+                        this.makeMove('down');
                     } else {
-                        this.simulateMove('up');
+                        this.makeMove('up');
                     }
                 }
             }
@@ -101,51 +93,47 @@ class Game2048UI {
         });
     }
 
-    // Simulate tile movement (this would connect to actual game logic)
-    simulateMove(direction) {
-        console.log(`Moving ${direction}`);
+    makeMove(direction) {
+        const moved = this.gameLogic.makeMove(direction);
         
-        // This is just UI simulation - in a real game, this would connect to game logic
-        // For demo purposes, we'll just add a random tile
-        this.addRandomTile();
+        if (moved) {
+            this.updateUI();
+            this.checkGameState();
+        }
+    }
+
+    updateUI() {
+        this.clearTiles();
+        const grid = this.gameLogic.getGrid();
         
-        // Simulate score increase
-        this.updateScore(Math.floor(Math.random() * 10) * 4);
+        // Create tiles for non-zero values
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                const value = grid[row][col];
+                if (value !== 0) {
+                    this.createTile(row + 1, col + 1, value);
+                }
+            }
+        }
         
-        // Randomly show win/lose messages for demo
-        if (Math.random() < 0.01) {
+        this.scoreContainer.textContent = this.gameLogic.getScore();
+    }
+
+    checkGameState() {
+        if (this.gameLogic.hasWon() && !this.won) {
+            this.won = true;
             this.showGameWon();
-        } else if (Math.random() < 0.01) {
+        } else if (this.gameLogic.isGameOver()) {
             this.showGameOver();
         }
     }
 
-    addRandomTile() {
-        const emptyCells = this.getEmptyCells();
-        if (emptyCells.length === 0) return;
-        
-        const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        const value = Math.random() < 0.9 ? 2 : 4;
-        
-        this.createTile(randomCell.row, randomCell.col, value, true);
-    }
-
-    getEmptyCells() {
-        const emptyCells = [];
-        for (let row = 1; row <= 4; row++) {
-            for (let col = 1; col <= 4; col++) {
-                if (!this.isCellOccupied(row, col)) {
-                    emptyCells.push({ row, col });
-                }
-            }
-        }
-        return emptyCells;
-    }
-
-    isCellOccupied(row, col) {
-        return this.tiles.some(tile => 
-            tile.row === row && tile.col === col && !tile.merged
-        );
+    startNewGame() {
+        this.gameLogic.startNewGame();
+        this.won = false;
+        this.keepPlaying = false;
+        this.hideGameMessage();
+        this.updateUI();
     }
 
     createTile(row, col, value, isNew = false) {
@@ -159,19 +147,10 @@ class Game2048UI {
         this.tileContainer.appendChild(tile);
         
         // Store tile data
-        const tileData = { element: tile, row, col, value, merged: false };
+        const tileData = { element: tile, row, col, value };
         this.tiles.push(tileData);
         
         return tileData;
-    }
-
-    showStartingTiles() {
-        // Clear existing tiles
-        this.clearTiles();
-        
-        // Add two starting tiles
-        this.addRandomTile();
-        this.addRandomTile();
     }
 
     clearTiles() {
@@ -179,24 +158,13 @@ class Game2048UI {
         this.tiles = [];
     }
 
-    updateScore(points) {
-        this.score += points;
-        this.scoreContainer.textContent = this.score;
-    }
-
-    updateDisplay() {
-        this.scoreContainer.textContent = this.score;
-    }
-
     showGameWon() {
-        this.won = true;
         this.gameMessageContainer.classList.add('game-won');
         this.gameMessageContainer.querySelector('p').textContent = 'You Win!';
         this.gameMessageContainer.style.display = 'block';
     }
 
     showGameOver() {
-        this.over = true;
         this.gameMessageContainer.classList.add('game-over');
         this.gameMessageContainer.querySelector('p').textContent = 'Game Over!';
         this.gameMessageContainer.style.display = 'block';
@@ -207,49 +175,20 @@ class Game2048UI {
         this.gameMessageContainer.classList.remove('game-won', 'game-over');
     }
 
-    keepPlaying() {
+    continueGame() {
         this.keepPlaying = true;
         this.hideGameMessage();
     }
 
     restart() {
-        this.score = 0;
-        this.over = false;
-        this.won = false;
-        this.keepPlaying = false;
-        
-        this.hideGameMessage();
-        this.updateDisplay();
-        this.showStartingTiles();
+        this.startNewGame();
     }
-
 }
 
 // Initialize the game when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     new Game2048UI();
 });
-
-// Additional utility functions for tile animations
-function animateTile(tile, fromPos, toPos, callback) {
-    tile.style.transform = `translate(${toPos.x}px, ${toPos.y}px)`;
-    
-    setTimeout(() => {
-        if (callback) callback();
-    }, 150);
-}
-
-function addScoreAnimation(points, element) {
-    const scoreAdd = document.createElement('div');
-    scoreAdd.className = 'score-addition';
-    scoreAdd.textContent = `+${points}`;
-    
-    element.appendChild(scoreAdd);
-    
-    setTimeout(() => {
-        element.removeChild(scoreAdd);
-    }, 600);
-}
 
 // Export for potential use in other files
 if (typeof module !== 'undefined' && module.exports) {
