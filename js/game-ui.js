@@ -17,6 +17,18 @@ class Game2048UI {
         this.startNewGame();
     }
 
+    getGrid() {
+        return this.gameLogic.getGrid();
+    }
+
+    getScore() {
+        return this.gameLogic.getScore();
+    }
+
+    isGameOver() {
+        return this.gameLogic.isGameOver();
+    }
+
     bindEvents() {
         this.retryButton.addEventListener('click', () => this.restart());
         
@@ -186,9 +198,9 @@ class Game2048UI {
 }
 
 // Initialize the game when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    new Game2048UI();
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//     new Game2048UI();
+// });
 
 // Export for potential use in other files
 if (typeof module !== 'undefined' && module.exports) {
