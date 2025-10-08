@@ -118,15 +118,6 @@ h1 {
     background: #9f8a76;
 }
 
-.game-won {
-    background: rgba(237, 194, 46, 0.5);
-    color: #f9f6f2;
-}
-
-.game-won p {
-    color: #f9f6f2;
-}
-
 .game-over {
     background: rgba(238, 228, 218, 0.73);
     color: #776e65;

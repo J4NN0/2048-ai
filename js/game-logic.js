@@ -225,18 +225,6 @@ class Game2048Logic {
         return this.moved || this.merged;
     }
 
-    // Check if player has won (reached 2048)
-    hasWon() {
-        for (let row = 0; row < this.GRID_SIZE; row++) {
-            for (let col = 0; col < this.GRID_SIZE; col++) {
-                if (this.grid[row][col] === 2048) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     isGameOver() {
         if (!this.isGridFull()) {
             return false;
@@ -305,7 +293,6 @@ class Game2048Logic {
             grid: this.getGrid(),
             score: this.score,
             isGameOver: this.isGameOver(),
-            hasWon: this.hasWon()
         };
     }
 }

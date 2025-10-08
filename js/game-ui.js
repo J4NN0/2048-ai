@@ -10,7 +10,6 @@ class Game2048UI {
         this.tiles = [];
         
         this.gameLogic = new Game2048Logic();
-        this.won = false;
         this.keepPlaying = false;
         
         this.bindEvents();
@@ -31,8 +30,6 @@ class Game2048UI {
 
     bindEvents() {
         this.retryButton.addEventListener('click', () => this.restart());
-        
-        // Keep playing after winning
         this.keepPlayingButton.addEventListener('click', () => this.continueGame());
         
         // Keyboard controls
@@ -110,7 +107,9 @@ class Game2048UI {
         
         if (moved) {
             this.updateUI();
-            this.checkGameState();
+            if (this.gameLogic.isGameOver()) {
+                this.showGameOver();
+            }
         }
     }
 
@@ -131,18 +130,8 @@ class Game2048UI {
         this.scoreContainer.textContent = this.gameLogic.getScore();
     }
 
-    checkGameState() {
-        if (this.gameLogic.hasWon() && !this.won) {
-            this.won = true;
-            this.showGameWon();
-        } else if (this.gameLogic.isGameOver()) {
-            this.showGameOver();
-        }
-    }
-
     startNewGame() {
         this.gameLogic.startNewGame();
-        this.won = false;
         this.keepPlaying = false;
         this.hideGameMessage();
         this.updateUI();
@@ -170,12 +159,6 @@ class Game2048UI {
         this.tiles = [];
     }
 
-    showGameWon() {
-        this.gameMessageContainer.classList.add('game-won');
-        this.gameMessageContainer.querySelector('p').textContent = 'You Win!';
-        this.gameMessageContainer.style.display = 'block';
-    }
-
     showGameOver() {
         this.gameMessageContainer.classList.add('game-over');
         this.gameMessageContainer.querySelector('p').textContent = 'Game Over!';
@@ -184,7 +167,7 @@ class Game2048UI {
 
     hideGameMessage() {
         this.gameMessageContainer.style.display = 'none';
-        this.gameMessageContainer.classList.remove('game-won', 'game-over');
+        this.gameMessageContainer.classList.remove('game-over');
     }
 
     continueGame() {
@@ -196,11 +179,6 @@ class Game2048UI {
         this.startNewGame();
     }
 }
-
-// Initialize the game when the page loads
-// document.addEventListener('DOMContentLoaded', () => {
-//     new Game2048UI();
-// });
 
 // Export for potential use in other files
 if (typeof module !== 'undefined' && module.exports) {
