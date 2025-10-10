@@ -1,8 +1,8 @@
 class Game2048Logic {
-    constructor() {
+    constructor(grid = null, score = 0) {
         this.GRID_SIZE = 4;
-        this.grid = this.initializeGrid();
-        this.score = 0;
+        this.grid = grid ? grid.map(row => [...row]) : this.initializeGrid();
+        this.score = score;
         this.moved = false;
         this.merged = false;
     }
@@ -286,14 +286,6 @@ class Game2048Logic {
         }
 
         return moved;
-    }
-
-    getGameState() {
-        return {
-            grid: this.getGrid(),
-            score: this.score,
-            isGameOver: this.isGameOver(),
-        };
     }
 }
 
