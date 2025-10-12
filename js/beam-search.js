@@ -103,9 +103,9 @@ function calculateGoodness(grid) {
 
   const cornerBonus = maxInCorner ? 20 : 0;
 
-  const WEIGHT_FREE = 2.0;
-  const WEIGHT_MONOTONICITY = 3.0;
-  const WEIGHT_SMOOTHNESS = -1.0;
+  const WEIGHT_FREE = 1.5;
+  const WEIGHT_MONOTONICITY = 2.0;
+  const WEIGHT_SMOOTHNESS = -3.0;
   const WEIGHT_CORNER = 1.0;
 
   const score = (
