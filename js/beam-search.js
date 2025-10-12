@@ -43,7 +43,7 @@ function beamSearch(currentGrid, currentScore = 0) {
   }
 
   const bestNode = beam[0];
-  console.log(`Next move: ${bestNode.firstMove} (score: ${bestNode.heuristicGoodness.toFixed(2)})`);
+  console.log(`Next move: ${bestNode.firstMove} (goodness: ${bestNode.heuristicGoodness.toFixed(2)})`);
 
   return bestNode.firstMove;
 }
@@ -132,10 +132,12 @@ async function runGameLoop() {
 
   const gameUi = new Game2048UI();
   while (true) {
-    if (gameUi.isGameOver()) {
-      await sleep(500);
-    }
-
+    if (gameUi.isGameOver() && !gameUi.restartRequested) {
+      console.log('Game over. Restarting in 1 second...');
+      await sleep(1000);
+      continue;
+    } 
+    
     const nextMove = beamSearch(gameUi.getGrid(), gameUi.getScore());
     gameUi.makeMove(nextMove);
     await sleep(moveDelay);

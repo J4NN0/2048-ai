@@ -10,6 +10,7 @@ class Game2048UI {
         
         this.gameLogic = new Game2048Logic();
         this.keepPlaying = false;
+        this.restartRequested = false;
         
         this.bindEvents();
         this.startNewGame();
@@ -134,6 +135,7 @@ class Game2048UI {
         this.keepPlaying = false;
         this.hideGameOver();
         this.updateUI();
+        this.restartRequested = true;
     }
 
     createTile(row, col, value, isNew = false) {
@@ -159,6 +161,7 @@ class Game2048UI {
     }
 
     showGameOver() {
+        this.restartRequested = false;
         this.gameMessageContainer.classList.add('game-over');
         this.gameMessageContainer.querySelector('p').textContent = 'Game Over!';
         this.gameMessageContainer.style.display = 'block';
