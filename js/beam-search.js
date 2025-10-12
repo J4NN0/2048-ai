@@ -3,6 +3,8 @@ const BRANCHING_FACTOR = 4; // Number of possible moves: up, down, left, right
 const BEAM_DEPTH = 5; // Depth of the search tree
 const validMoves = ['up', 'down', 'left', 'right'];
 
+let moveDelay = 500;
+
 function beamSearch(grid) {
   let beam = [{
     grid: grid,
@@ -96,14 +98,29 @@ function validateBeamSearchParameters() {
   }
 }
 
-function init() {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function init() {
   validateBeamSearchParameters();
 
   const gameUi = new Game2048UI();
+  
+  const moveSpeedSlider = document.getElementById('move-speed');
+  const speedValue = document.getElementById('speed-value');
+  moveSpeedSlider.addEventListener('input', (e) => {
+    moveDelay = parseInt(e.target.value);
+    speedValue.textContent = `${moveDelay}ms`;
+  });
 
   while (!gameUi.isGameOver()) {
     const nextMove = beamSearch(gameUi.getGrid());
-    gameUi.makeMove(nextMove);
+    if (nextMove) {
+      gameUi.makeMove(nextMove);
+    }
+    
+    await sleep(moveDelay);
   }
 
   console.log('Game Over! Final score:', gameUi.getScore());

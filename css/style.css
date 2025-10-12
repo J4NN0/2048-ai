@@ -60,6 +60,37 @@ h1 {
     line-height: 1;
 }
 
+.ai-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #bbada0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: center;
+    width: 500px;
+    box-sizing: border-box;
+}
+
+.ai-controls label {
+    color: #f9f6f2;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.ai-controls input[type="range"] {
+    flex: 1;
+    min-width: 100px;
+    max-width: 200px;
+}
+
+.ai-controls #speed-value {
+    color: #f9f6f2;
+    font-weight: bold;
+    min-width: 60px;
+}
+
 .game-container {
     position: relative;
     padding: 15px;
