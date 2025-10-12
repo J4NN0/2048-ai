@@ -19,7 +19,7 @@ function beamSearch(currentGrid, currentScore = 0) {
       for (let bf = 0; bf < BRANCHING_FACTOR; bf++) {
         const newMove = validMoves[bf];
         const newState = new Game2048Logic(node.grid, node.score);
-        
+
         const moved = newState.makeMove(newMove);
         if (!moved) {
           continue;
@@ -127,28 +127,35 @@ function validateBeamSearchParameters() {
   }
 }
 
+async function runGameLoop() {
+  validateBeamSearchParameters();
+
+  const gameUi = new Game2048UI();
+  while (true) {
+    if (gameUi.isGameOver()) {
+      await sleep(500);
+    }
+
+    const nextMove = beamSearch(gameUi.getGrid(), gameUi.getScore());
+    gameUi.makeMove(nextMove);
+    await sleep(moveDelay);
+  }
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function init() {
-  validateBeamSearchParameters();
-
   const moveSpeedSlider = document.getElementById('move-speed');
   const speedValue = document.getElementById('speed-value');
+
   moveSpeedSlider.addEventListener('input', (e) => {
     moveDelay = parseInt(e.target.value);
     speedValue.textContent = `${moveDelay}ms`;
   });
 
-  const gameUi = new Game2048UI();
-  while (!gameUi.isGameOver()) {
-    const nextMove = beamSearch(gameUi.getGrid(), gameUi.getScore());
-    gameUi.makeMove(nextMove);
-    await sleep(moveDelay);
-  }
-
-  console.log('Game Over! Final score:', gameUi.getScore());
+  runGameLoop();
 }
 
 init();
