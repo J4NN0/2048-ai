@@ -5,7 +5,6 @@ class Game2048UI {
         this.gameMessageContainer = document.getElementById('game-message');
         this.retryButton = document.getElementById('retry-btn');
         this.keepPlayingButton = document.getElementById('keep-playing-btn');
-        
         this.tileContainer = document.getElementById('tile-container');
         this.tiles = [];
         
@@ -133,7 +132,7 @@ class Game2048UI {
     startNewGame() {
         this.gameLogic.startNewGame();
         this.keepPlaying = false;
-        this.hideGameMessage();
+        this.hideGameOver();
         this.updateUI();
     }
 
@@ -165,14 +164,14 @@ class Game2048UI {
         this.gameMessageContainer.style.display = 'block';
     }
 
-    hideGameMessage() {
+    hideGameOver() {
         this.gameMessageContainer.style.display = 'none';
         this.gameMessageContainer.classList.remove('game-over');
     }
 
     continueGame() {
         this.keepPlaying = true;
-        this.hideGameMessage();
+        this.hideGameOver();
     }
 
     restart() {

@@ -1,7 +1,7 @@
 class Game2048Logic {
     constructor(grid = null, score = 0) {
         this.GRID_SIZE = 4;
-        this.grid = grid ? grid.map(row => [...row]) : this.initializeGrid();
+        this.grid = grid ?? this.initializeGrid();
         this.score = score;
         this.moved = false;
         this.merged = false;
