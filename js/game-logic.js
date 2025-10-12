@@ -1,7 +1,7 @@
 class Game2048Logic {
     constructor(grid = null, score = 0) {
         this.GRID_SIZE = 4;
-        this.grid = grid ?? this.initializeGrid();
+        this.grid = grid ? grid.map(row => [...row]) : this.initializeGrid();
         this.score = score;
         this.moved = false;
         this.merged = false;
@@ -44,7 +44,7 @@ class Game2048Logic {
 
     addRandomTile() {
         const emptyCells = this.getEmptyCells();
-        if (emptyCells.length === 0) return false;
+        if (emptyCells.length === 0) return null;
 
         const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
         const value = Math.random() < 0.9 ? 2 : 4;

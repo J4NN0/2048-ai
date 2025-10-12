@@ -1,13 +1,14 @@
 const BEAM_WIDTH = 3; // Number of nodes evaluated at each level
 const BRANCHING_FACTOR = 4; // Number of possible moves: up, down, left, right
-const BEAM_DEPTH = 5; // Depth of the search tree
+const BEAM_DEPTH = 8; // Depth of the search tree
 const validMoves = ['up', 'down', 'left', 'right'];
 
 let moveDelay = 500;
 
-function beamSearch(grid) {
+function beamSearch(currentGrid, currentScore = 0) {
   let beam = [{
-    grid: grid,
+    grid: currentGrid,
+    score: currentScore,
     firstMove: null
   }];
 
@@ -17,15 +18,18 @@ function beamSearch(grid) {
     for (const node of beam) {
       for (let bf = 0; bf < BRANCHING_FACTOR; bf++) {
         const newMove = validMoves[bf];
-        const gameLogic = new Game2048Logic(node.grid, node.grid.score);
-        const moved = gameLogic.makeMove(newMove);
+        const newState = new Game2048Logic(node.grid, node.score);
+        
+        const moved = newState.makeMove(newMove);
         if (!moved) {
           continue;
         }
 
         candidates.push({
-          grid: gameLogic.getGrid(),
-          firstMove: node.firstMove ?? newMove
+          grid: newState.getGrid(),
+          score: newState.getScore(),
+          firstMove: node.firstMove ?? newMove,
+          heuristicGoodness: calculateGoodness(newState.getGrid())
         });
       }
     }
@@ -34,12 +38,12 @@ function beamSearch(grid) {
       continue;
     }
 
-    candidates.sort((a, b) => calculateGoodness(b.grid) - calculateGoodness(a.grid));
+    candidates.sort((a, b) => b.heuristicGoodness - a.heuristicGoodness);
     beam = candidates.slice(0, BEAM_WIDTH);
   }
 
   const bestNode = beam[0];
-  console.log('Next Move:', bestNode.firstMove);
+  console.log(`Next move: ${bestNode.firstMove} (score: ${bestNode.heuristicGoodness.toFixed(2)})`);
 
   return bestNode.firstMove;
 }
@@ -59,34 +63,59 @@ function beamSearch(grid) {
 function calculateGoodness(grid) {
   let freeTiles = 0;
   let smoothness = 0;
-  let monotonicity = grid.length * grid.length;
+  let monotonicity = 0;
+  let maxValue = -1;
+  let maxInCorner = false;
 
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid.length; j++) {
-      if (grid[i][j] === 0) {
-        freeTiles += 1;
-        continue;
+      const current = grid[i][j];
+      if (current === 0) {
+        freeTiles++;
+      }
+
+      if (current > maxValue) {
+        maxValue = current;
+        maxInCorner = (i === 0 || i === grid.length - 1) && (j === 0 || j === grid.length - 1);
       }
 
       // In Rows
-      if (j < grid.length - 1 && grid[i][j + 1] !== 0) {
-        smoothness += Math.abs(grid[i][j] - grid[i][j + 1]);
-        if (grid[i][j] >= grid[i][j + 1]) {
-          monotonicity--;
-        }
+      if (j < grid.length - 1) {
+        const next = grid[i][j + 1];
+        smoothness += Math.abs(current - next);
+
+        // Penalize mixed directions
+        if (current < next) monotonicity += 1;
+        if (current > next) monotonicity -= 1;
       }
 
       // In Columns
-      if (i < grid.length - 1 && grid[i + 1][j] !== 0) {
-        smoothness += Math.abs(grid[i][j] - grid[i + 1][j]);
-        if (grid[i][j] >= grid[i + 1][j]) {
-          monotonicity--;
-        }
+      if (i < grid.length - 1) {
+        const next = grid[i + 1][j];
+        smoothness += Math.abs(current - next);
+
+        // Penalize mixed directions
+        if (current < next) monotonicity += 1;
+        if (current > next) monotonicity -= 1;
       }
     }
   }
 
-  return freeTiles + monotonicity - smoothness;
+  const cornerBonus = maxInCorner ? 20 : 0;
+
+  const WEIGHT_FREE = 2.0;
+  const WEIGHT_MONOTONICITY = 3.0;
+  const WEIGHT_SMOOTHNESS = -1.0;
+  const WEIGHT_CORNER = 1.0;
+
+  const score = (
+    WEIGHT_FREE * freeTiles +
+    WEIGHT_MONOTONICITY * monotonicity +
+    WEIGHT_SMOOTHNESS * smoothness +
+    WEIGHT_CORNER * cornerBonus
+  );
+
+  return score;
 }
 
 function validateBeamSearchParameters() {
@@ -105,8 +134,6 @@ function sleep(ms) {
 async function init() {
   validateBeamSearchParameters();
 
-  const gameUi = new Game2048UI();
-  
   const moveSpeedSlider = document.getElementById('move-speed');
   const speedValue = document.getElementById('speed-value');
   moveSpeedSlider.addEventListener('input', (e) => {
@@ -114,12 +141,10 @@ async function init() {
     speedValue.textContent = `${moveDelay}ms`;
   });
 
+  const gameUi = new Game2048UI();
   while (!gameUi.isGameOver()) {
-    const nextMove = beamSearch(gameUi.getGrid());
-    if (nextMove) {
-      gameUi.makeMove(nextMove);
-    }
-    
+    const nextMove = beamSearch(gameUi.getGrid(), gameUi.getScore());
+    gameUi.makeMove(nextMove);
     await sleep(moveDelay);
   }
 
