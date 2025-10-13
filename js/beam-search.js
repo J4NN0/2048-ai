@@ -51,68 +51,131 @@ function beamSearch(currentGrid, currentScore = 0) {
 /**
  * Evaluates the heuristic goodness of the current grid state based on:
  * 1. Free tiles -> The more empty tiles there are, the better the state is.
- * 2. Monotonicity -> Ensure the tiles have a monotonic trend in both the horizontal and vertical directions.
- *    If 0: Perfectly monotonic
- *    If matrix size: Not monotonic
- *    Else: Partially monotonic
- * 3. Smoothness -> Measures the value difference between neighboring tiles, trying to minimize this count.
- * 
+ * 2. Positional strategy -> Reward keeping max tile in corner with snake pattern.
+ * 3. Smoothness -> Measures log-based value difference between neighboring tiles.
+ * 4. Merge potential -> Reward adjacent equal tiles.
+ *
  * @param {number[][]} grid - The 2D grid representing the game state
  * @returns {number} Grid state goodness score
  */
 function calculateGoodness(grid) {
   let freeTiles = 0;
   let smoothness = 0;
-  let monotonicity = 0;
+  let monoRowInc = 0, monoRowDec = 0;
+  let monoColInc = 0, monoColDec = 0;
+  let mergeOpportunities = 0;
   let maxValue = -1;
-  let maxInCorner = false;
+  let maxPosition = { row: -1, col: -1 };
+
+  const snakeWeights = [
+    [15, 14, 13, 12],
+    [8, 9, 10, 11],
+    [7, 6, 5, 4],
+    [0, 1, 2, 3]
+  ];
 
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid.length; j++) {
       const current = grid[i][j];
+
       if (current === 0) {
         freeTiles++;
       }
 
       if (current > maxValue) {
         maxValue = current;
-        maxInCorner = (i === 0 || i === grid.length - 1) && (j === 0 || j === grid.length - 1);
+        maxPosition = { row: i, col: j };
       }
 
       // In Rows
       if (j < grid.length - 1) {
-        const next = grid[i][j + 1];
-        smoothness += Math.abs(current - next);
+        const right = grid[i][j + 1];
 
-        // Penalize mixed directions
-        if (current < next) monotonicity += 1;
-        if (current > next) monotonicity -= 1;
+        if (current !== 0 && right !== 0) {
+          smoothness += Math.abs(Math.log2(current) - Math.log2(right));
+        }
+
+        if (current !== 0 && current === right) {
+          mergeOpportunities++;
+        }
+
+        if (current > right) {
+          monoRowDec++;
+        }
+        else if (current < right) {
+          monoRowInc++;
+        }
       }
 
       // In Columns
       if (i < grid.length - 1) {
-        const next = grid[i + 1][j];
-        smoothness += Math.abs(current - next);
+        const bottom = grid[i + 1][j];
 
-        // Penalize mixed directions
-        if (current < next) monotonicity += 1;
-        if (current > next) monotonicity -= 1;
+        if (current !== 0 && bottom !== 0) {
+          smoothness += Math.abs(Math.log2(current) - Math.log2(bottom));
+        }
+
+        if (current !== 0 && current === bottom) {
+          mergeOpportunities++;
+        }
+
+        if (current > bottom) {
+          monoColDec++;
+        }
+        else if (current < bottom) {
+          monoColInc++;
+        }
       }
     }
   }
 
-  const cornerBonus = maxInCorner ? 20 : 0;
+  const monotonicity = Math.max(monoRowDec, monoRowInc) + Math.max(monoColDec, monoColInc);
 
-  const WEIGHT_FREE = 1.5;
-  const WEIGHT_MONOTONICITY = 2.0;
-  const WEIGHT_SMOOTHNESS = -3.0;
-  const WEIGHT_CORNER = 1.0;
+  const cornerPositions = [[0, 0], [0, 3], [3, 0], [3, 3]];
+  const maxInCorner = cornerPositions.some(([row, col]) =>
+    maxPosition.row === row && maxPosition.col === col
+  );
+
+  let positionalScore = 0;
+  if (maxInCorner) {
+    positionalScore += 1000;
+
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid.length; j++) {
+        if (grid[i][j] !== 0) {
+          let wi = i, wj = j;
+          if (maxPosition.row === 0 && maxPosition.col === 3) {
+            // top-right: flip horizontally
+            wj = 3 - j;
+          }
+          else if (maxPosition.row === 3 && maxPosition.col === 0) {
+            // bottom-left: flip vertically
+            wi = 3 - i;
+          }
+          else if (maxPosition.row === 3 && maxPosition.col === 3) {
+            // bottom-right: flip both
+            wi = 3 - i;
+            wj = 3 - j;
+          }
+
+          positionalScore += Math.log2(grid[i][j]) * snakeWeights[wi][wj];
+        }
+      }
+    }
+  }
+
+  const WEIGHT_FREE = 2.7;
+  const WEIGHT_MONOTONICITY = 1.0;
+  const WEIGHT_SMOOTHNESS = -0.1;
+  const WEIGHT_MERGE = 2.0;
+  const WEIGHT_POSITION = 1.0;
 
   const score = (
     WEIGHT_FREE * freeTiles +
     WEIGHT_MONOTONICITY * monotonicity +
     WEIGHT_SMOOTHNESS * smoothness +
-    WEIGHT_CORNER * cornerBonus
+    WEIGHT_MERGE * mergeOpportunities +
+    WEIGHT_POSITION * positionalScore
   );
 
   return score;
@@ -136,8 +199,8 @@ async function runGameLoop() {
       console.log('Game over. Restarting in 1 second...');
       await sleep(1000);
       continue;
-    } 
-    
+    }
+
     const nextMove = beamSearch(gameUi.getGrid(), gameUi.getScore());
     gameUi.makeMove(nextMove);
     await sleep(moveDelay);
