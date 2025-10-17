@@ -60,18 +60,12 @@ function getNextMove(currentGrid, currentScore = 0) {
 }
 
 function generateGameStateWithNewTile(gameState, cell, value, totEmptyCells) {
-  let tileProbability = 0.9;
-  if (value === 4) {
-    tileProbability = 0.1;
-  }
-
   const newGrid = structuredClone(gameState.getGrid());
   newGrid[cell.row][cell.col] = value;
 
   const newGameState = new Game2048Logic(newGrid, gameState.getScore());
-  expectedHeuristic += (tileProbability / totEmptyCells) * calculateGoodness(newGameState);
 
-  return newGameState, expectedHeuristic;
+  return [newGameState, calculateGoodness(newGameState)];
 }
 
 function calculateGoodness(gameState) {

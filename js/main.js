@@ -9,7 +9,7 @@ async function runGameLoop() {
   
   while (true) {
     if (gameUi.isGameOver() && !gameUi.restartRequested) {
-      console.log('Game over. Restarting in 1 second...');
+      console.log('Game over. Waiting for restart...');
       await sleep(1000);
       continue;
     }
