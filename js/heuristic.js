@@ -1,64 +1,86 @@
-const BEAM_WIDTH = 3; // Number of nodes evaluated at each level
-const BRANCHING_FACTOR = 4; // Number of possible moves: up, down, left, right
-const BEAM_DEPTH = 8; // Depth of the search tree
-const validMoves = ['up', 'down', 'left', 'right'];
+const MAX_DEPTH = 8; // Depth of the search tree
+const MAX_WIDTH = 20; // Number of nodes evaluated at each level
+const VALID_MOVES = ['up', 'down', 'left', 'right'];
 
-let moveDelay = 500;
-
-function beamSearch(currentGrid, currentScore = 0) {
-  let beam = [{
+function getNextMove(currentGrid, currentScore = 0) {
+  let states = [{
     grid: currentGrid,
     score: currentScore,
     firstMove: null
   }];
+  let totEvaluated = 0;
 
-  for (let depth = 0; depth < BEAM_DEPTH; depth++) {
+  for (let depth = 0; depth < MAX_DEPTH; depth++) {
     const candidates = [];
 
-    for (const node of beam) {
-      for (let bf = 0; bf < BRANCHING_FACTOR; bf++) {
-        const newMove = validMoves[bf];
+    for (const node of states) {
+      for (const move of VALID_MOVES) {
         const newState = new Game2048Logic(node.grid, node.score);
 
-        const moved = newState.makeMove(newMove);
+        const moved = newState.makeMove(move);
         if (!moved) {
           continue;
         }
 
-        candidates.push({
-          grid: newState.getGrid(),
-          score: newState.getScore(),
-          firstMove: node.firstMove ?? newMove,
-          heuristicGoodness: calculateGoodness(newState.getGrid())
-        });
+        let emptyCells = newState.getEmptyCells();
+        //TODO: optimize by not generating all possible new tiles
+        for (const cell of emptyCells) {
+          const [gameStateWith2, expectedHeuristicWith2] = generateGameStateWithNewTile(newState, cell, 2, emptyCells.length);
+          candidates.push({
+            grid: gameStateWith2.getGrid(),
+            score: gameStateWith2.getScore(),
+            firstMove: node.firstMove ?? move,
+            heuristicGoodness: expectedHeuristicWith2
+          });
+
+          const [gameStateWith4, expectedHeuristicWith4] = generateGameStateWithNewTile(newState, cell, 4, emptyCells.length);
+          candidates.push({
+            grid: gameStateWith4.getGrid(),
+            score: gameStateWith4.getScore(),
+            firstMove: node.firstMove ?? move,
+            heuristicGoodness: expectedHeuristicWith4
+          });
+        }
       }
     }
 
     if (candidates.length === 0) {
       continue;
     }
-
+    totEvaluated += candidates.length;
+    
     candidates.sort((a, b) => b.heuristicGoodness - a.heuristicGoodness);
-    beam = candidates.slice(0, BEAM_WIDTH);
+    states = candidates.slice(0, MAX_WIDTH);
   }
 
-  const bestNode = beam[0];
-  console.log(`Next move: ${bestNode.firstMove} (goodness: ${bestNode.heuristicGoodness.toFixed(2)})`);
+  const bestNode = states[0];
+  console.log(`Evaluated ${totEvaluated} candidates. Chosen move: ${bestNode.firstMove} with expected goodness ${bestNode.heuristicGoodness}`);
 
   return bestNode.firstMove;
 }
 
-/**
- * Evaluates the heuristic goodness of the current grid state based on:
- * 1. Free tiles -> The more empty tiles there are, the better the state is.
- * 2. Positional strategy -> Reward keeping max tile in corner with snake pattern.
- * 3. Smoothness -> Measures log-based value difference between neighboring tiles.
- * 4. Merge potential -> Reward adjacent equal tiles.
- *
- * @param {number[][]} grid - The 2D grid representing the game state
- * @returns {number} Grid state goodness score
- */
-function calculateGoodness(grid) {
+function generateGameStateWithNewTile(gameState, cell, value, totEmptyCells) {
+  let tileProbability = 0.9;
+  if (value === 4) {
+    tileProbability = 0.1;
+  }
+
+  const newGrid = structuredClone(gameState.getGrid());
+  newGrid[cell.row][cell.col] = value;
+
+  const newGameState = new Game2048Logic(newGrid, gameState.getScore());
+  expectedHeuristic += (tileProbability / totEmptyCells) * calculateGoodness(newGameState);
+
+  return newGameState, expectedHeuristic;
+}
+
+function calculateGoodness(gameState) {
+  if (gameState.isGameOver()) {
+    return -Infinity;
+  }
+
+  const grid = gameState.getGrid();
+
   let freeTiles = 0;
   let smoothness = 0;
   let monoRowInc = 0, monoRowDec = 0;
@@ -158,7 +180,7 @@ function calculateGoodness(grid) {
             wj = 3 - j;
           }
 
-          positionalScore += Math.log2(grid[i][j]) * snakeWeights[wi][wj];
+          positionalScore += grid[i][j] * snakeWeights[wi][wj];
         }
       }
     }
@@ -180,47 +202,3 @@ function calculateGoodness(grid) {
 
   return score;
 }
-
-function validateBeamSearchParameters() {
-  if (BEAM_WIDTH <= 0 || BRANCHING_FACTOR <= 0 || BEAM_DEPTH <= 0) {
-    throw new Error('Invalid beam search parameters');
-  }
-  if (BRANCHING_FACTOR > validMoves.length) {
-    throw new Error('Branching factor exceeds number of valid moves');
-  }
-}
-
-async function runGameLoop() {
-  validateBeamSearchParameters();
-
-  const gameUi = new Game2048UI();
-  while (true) {
-    if (gameUi.isGameOver() && !gameUi.restartRequested) {
-      console.log('Game over. Restarting in 1 second...');
-      await sleep(1000);
-      continue;
-    }
-
-    const nextMove = beamSearch(gameUi.getGrid(), gameUi.getScore());
-    gameUi.makeMove(nextMove);
-    await sleep(moveDelay);
-  }
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function init() {
-  const moveSpeedSlider = document.getElementById('move-speed');
-  const speedValue = document.getElementById('speed-value');
-
-  moveSpeedSlider.addEventListener('input', (e) => {
-    moveDelay = parseInt(e.target.value);
-    speedValue.textContent = `${moveDelay}ms`;
-  });
-
-  runGameLoop();
-}
-
-init();

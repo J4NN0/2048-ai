@@ -42,15 +42,25 @@ class Game2048Logic {
         return emptyCells;
     }
 
-    addRandomTile() {
-        const emptyCells = this.getEmptyCells();
-        if (emptyCells.length === 0) return null;
+    makeMove(direction) {
+        let moved = false;
 
-        const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        const value = Math.random() < 0.9 ? 2 : 4;
-        
-        this.grid[randomCell.row][randomCell.col] = value;
-        return { row: randomCell.row, col: randomCell.col, value };
+        switch (direction) {
+            case 'up':
+                moved = this.moveUp();
+                break;
+            case 'down':
+                moved = this.moveDown();
+                break;
+            case 'left':
+                moved = this.moveLeft();
+                break;
+            case 'right':
+                moved = this.moveRight();
+                break;
+        }
+
+        return moved;
     }
 
     moveUp() {
@@ -225,6 +235,17 @@ class Game2048Logic {
         return this.moved || this.merged;
     }
 
+    addRandomTile() {
+        const emptyCells = this.getEmptyCells();
+        if (emptyCells.length === 0) return null;
+
+        const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const value = Math.random() < 0.9 ? 2 : 4;
+
+        this.grid[randomCell.row][randomCell.col] = value;
+        return { row: randomCell.row, col: randomCell.col, value };
+    }
+
     isGameOver() {
         if (!this.isGridFull()) {
             return false;
@@ -234,13 +255,13 @@ class Game2048Logic {
         for (let row = 0; row < this.GRID_SIZE; row++) {
             for (let col = 0; col < this.GRID_SIZE; col++) {
                 const currentValue = this.grid[row][col];
-                
-                // Check right neighbor
+
+                // Check row
                 if (col < this.GRID_SIZE - 1 && this.grid[row][col + 1] === currentValue) {
                     return false;
                 }
-                
-                // Check bottom neighbor
+
+                // Check column
                 if (row < this.GRID_SIZE - 1 && this.grid[row + 1][col] === currentValue) {
                     return false;
                 }
@@ -261,31 +282,6 @@ class Game2048Logic {
         this.reset();
         this.addRandomTile();
         this.addRandomTile();
-    }
-
-    makeMove(direction) {
-        let moved = false;
-
-        switch (direction) {
-            case 'up':
-                moved = this.moveUp();
-                break;
-            case 'down':
-                moved = this.moveDown();
-                break;
-            case 'left':
-                moved = this.moveLeft();
-                break;
-            case 'right':
-                moved = this.moveRight();
-                break;
-        }
-
-        if (moved) {
-            this.addRandomTile();
-        }
-
-        return moved;
     }
 }
 
