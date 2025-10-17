@@ -1,5 +1,5 @@
 const MAX_DEPTH = 8; // Depth of the search tree
-const MAX_WIDTH = 20; // Number of nodes evaluated at each level
+const MAX_WIDTH = 10; // Number of nodes evaluated at each level
 const VALID_MOVES = ['up', 'down', 'left', 'right'];
 
 function getNextMove(currentGrid, currentScore = 0) {
@@ -22,35 +22,37 @@ function getNextMove(currentGrid, currentScore = 0) {
           continue;
         }
 
+        let expectedHeuristic = 0;
         let emptyCells = newState.getEmptyCells();
-        //TODO: optimize by not generating all possible new tiles
-        for (const cell of emptyCells) {
-          const [gameStateWith2, expectedHeuristicWith2] = generateGameStateWithNewTile(newState, cell, 2, emptyCells.length);
-          candidates.push({
-            grid: gameStateWith2.getGrid(),
-            score: gameStateWith2.getScore(),
-            firstMove: node.firstMove ?? move,
-            heuristicGoodness: expectedHeuristicWith2
-          });
+        if (emptyCells.length === 0) {
+          expectedHeuristic = calculateGoodness(newState);
+        } else {
+          for (const cell of emptyCells) {
+            const gameStateWith2 = generateGameStateWithNewTile(newState, cell, 2);
+            expectedHeuristic += (0.9 / emptyCells.length) * calculateGoodness(gameStateWith2);
 
-          const [gameStateWith4, expectedHeuristicWith4] = generateGameStateWithNewTile(newState, cell, 4, emptyCells.length);
-          candidates.push({
-            grid: gameStateWith4.getGrid(),
-            score: gameStateWith4.getScore(),
-            firstMove: node.firstMove ?? move,
-            heuristicGoodness: expectedHeuristicWith4
-          });
+            const gameStateWith4 = generateGameStateWithNewTile(newState, cell, 4);
+            expectedHeuristic += (0.1 / emptyCells.length) * calculateGoodness(gameStateWith4);
+          }
         }
+
+        newState.addRandomTile();
+        candidates.push({
+          grid: newState.getGrid(),
+          score: newState.getScore(),
+          firstMove: node.firstMove ?? move,
+          heuristicGoodness: expectedHeuristic
+        });
       }
     }
 
     if (candidates.length === 0) {
       continue;
     }
-    totEvaluated += candidates.length;
-    
     candidates.sort((a, b) => b.heuristicGoodness - a.heuristicGoodness);
+    
     states = candidates.slice(0, MAX_WIDTH);
+    totEvaluated += states.length;
   }
 
   const bestNode = states[0];
@@ -59,13 +61,13 @@ function getNextMove(currentGrid, currentScore = 0) {
   return bestNode.firstMove;
 }
 
-function generateGameStateWithNewTile(gameState, cell, value, totEmptyCells) {
+function generateGameStateWithNewTile(gameState, cell, value) {
   const newGrid = structuredClone(gameState.getGrid());
   newGrid[cell.row][cell.col] = value;
 
   const newGameState = new Game2048Logic(newGrid, gameState.getScore());
 
-  return [newGameState, calculateGoodness(newGameState)];
+  return newGameState;
 }
 
 function calculateGoodness(gameState) {
