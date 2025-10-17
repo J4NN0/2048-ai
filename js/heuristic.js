@@ -1,5 +1,5 @@
-const MAX_DEPTH = 8; // Depth of the search tree
-const MAX_WIDTH = 10; // Number of nodes evaluated at each level
+const MAX_DEPTH = 10; // Depth of the search tree
+const MAX_WIDTH = 15; // Number of nodes evaluated at each level
 const VALID_MOVES = ['up', 'down', 'left', 'right'];
 
 function getNextMove(currentGrid, currentScore = 0) {
@@ -78,19 +78,16 @@ function calculateGoodness(gameState) {
   const grid = gameState.getGrid();
 
   let freeTiles = 0;
+  let borderPenalty = 0;
   let smoothness = 0;
-  let monoRowInc = 0, monoRowDec = 0;
-  let monoColInc = 0, monoColDec = 0;
   let mergeOpportunities = 0;
   let maxValue = -1;
   let maxPosition = { row: -1, col: -1 };
 
-  const snakeWeights = [
-    [15, 14, 13, 12],
-    [8, 9, 10, 11],
-    [7, 6, 5, 4],
-    [0, 1, 2, 3]
-  ];
+  const rowIncPenalty = [0, 0, 0, 0];
+  const rowDecPenalty = [0, 0, 0, 0];
+  const colIncPenalty = [0, 0, 0, 0];
+  const colDecPenalty = [0, 0, 0, 0];
 
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid.length; j++) {
@@ -105,6 +102,15 @@ function calculateGoodness(gameState) {
         maxPosition = { row: i, col: j };
       }
 
+      if (current !== 0) {
+        const distToRowBorder = Math.min(i, 3 - i);
+        const distToColBorder = Math.min(j, 3 - j);
+        const distToBorder = Math.min(distToRowBorder, distToColBorder);
+
+        const tileRank = Math.log2(current);
+        borderPenalty += distToBorder * tileRank * tileRank;
+      }
+
       // In Rows
       if (j < grid.length - 1) {
         const right = grid[i][j + 1];
@@ -117,11 +123,13 @@ function calculateGoodness(gameState) {
           mergeOpportunities++;
         }
 
-        if (current > right) {
-          monoRowDec++;
-        }
-        else if (current < right) {
-          monoRowInc++;
+        if (current !== 0 && right !== 0) {
+          if (current < right) {
+            rowDecPenalty[i] += Math.log2(right);
+          }
+          if (current > right) {
+            rowIncPenalty[i] += Math.log2(current);
+          }
         }
       }
 
@@ -137,63 +145,36 @@ function calculateGoodness(gameState) {
           mergeOpportunities++;
         }
 
-        if (current > bottom) {
-          monoColDec++;
-        }
-        else if (current < bottom) {
-          monoColInc++;
-        }
-      }
-    }
-  }
-
-  const monotonicity = Math.max(monoRowDec, monoRowInc) + Math.max(monoColDec, monoColInc);
-
-  const cornerPositions = [[0, 0], [0, 3], [3, 0], [3, 3]];
-  const maxInCorner = cornerPositions.some(([row, col]) =>
-    maxPosition.row === row && maxPosition.col === col
-  );
-
-  let positionalScore = 0;
-  if (maxInCorner) {
-    positionalScore += 1000;
-
-    for (let i = 0; i < grid.length; i++) {
-      for (let j = 0; j < grid.length; j++) {
-        if (grid[i][j] !== 0) {
-          let wi = i, wj = j;
-          if (maxPosition.row === 0 && maxPosition.col === 3) {
-            // top-right: flip horizontally
-            wj = 3 - j;
+        if (current !== 0 && bottom !== 0) {
+          if (current < bottom) {
+            colDecPenalty[j] += Math.log2(bottom);
           }
-          else if (maxPosition.row === 3 && maxPosition.col === 0) {
-            // bottom-left: flip vertically
-            wi = 3 - i;
+          if (current > bottom) {
+            colIncPenalty[j] += Math.log2(current);
           }
-          else if (maxPosition.row === 3 && maxPosition.col === 3) {
-            // bottom-right: flip both
-            wi = 3 - i;
-            wj = 3 - j;
-          }
-
-          positionalScore += grid[i][j] * snakeWeights[wi][wj];
         }
       }
     }
   }
 
-  const WEIGHT_FREE = 2.7;
-  const WEIGHT_MONOTONICITY = 1.0;
-  const WEIGHT_SMOOTHNESS = -0.1;
-  const WEIGHT_MERGE = 2.0;
-  const WEIGHT_POSITION = 1.0;
+  let monotonicityPenalty = 0;
+  for (let i = 0; i < 4; i++) {
+    monotonicityPenalty += Math.min(rowIncPenalty[i], rowDecPenalty[i]);
+    monotonicityPenalty += Math.min(colIncPenalty[i], colDecPenalty[i]);
+  }
+
+  const WEIGHT_FREE = 15.0;
+  const WEIGHT_MONOTONICITY = -5.0;
+  const WEIGHT_SMOOTHNESS = -0.5;
+  const WEIGHT_MERGE = 20.0;
+  const WEIGHT_BORDER = -4.0;
 
   const score = (
     WEIGHT_FREE * freeTiles +
-    WEIGHT_MONOTONICITY * monotonicity +
+    WEIGHT_MONOTONICITY * monotonicityPenalty +
     WEIGHT_SMOOTHNESS * smoothness +
     WEIGHT_MERGE * mergeOpportunities +
-    WEIGHT_POSITION * positionalScore
+    WEIGHT_BORDER * borderPenalty
   );
 
   return score;
