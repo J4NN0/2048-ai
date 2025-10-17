@@ -81,8 +81,6 @@ function calculateGoodness(gameState) {
   let borderPenalty = 0;
   let smoothness = 0;
   let mergeOpportunities = 0;
-  let maxValue = -1;
-  let maxPosition = { row: -1, col: -1 };
 
   const rowIncPenalty = [0, 0, 0, 0];
   const rowDecPenalty = [0, 0, 0, 0];
@@ -95,11 +93,6 @@ function calculateGoodness(gameState) {
 
       if (current === 0) {
         freeTiles++;
-      }
-
-      if (current > maxValue) {
-        maxValue = current;
-        maxPosition = { row: i, col: j };
       }
 
       if (current !== 0) {
@@ -159,8 +152,20 @@ function calculateGoodness(gameState) {
 
   let monotonicityPenalty = 0;
   for (let i = 0; i < 4; i++) {
-    monotonicityPenalty += Math.min(rowIncPenalty[i], rowDecPenalty[i]);
-    monotonicityPenalty += Math.min(colIncPenalty[i], colDecPenalty[i]);
+    const rowPenalty = Math.min(rowIncPenalty[i], rowDecPenalty[i]);
+    const colPenalty = Math.min(colIncPenalty[i], colDecPenalty[i]);
+
+    monotonicityPenalty += rowPenalty;
+    monotonicityPenalty += colPenalty;
+
+    // Extra penalty for chaotic rows/columns (having both directions with violations)
+    if (rowIncPenalty[i] > 0 && rowDecPenalty[i] > 0) {
+      monotonicityPenalty += rowIncPenalty[i] * rowDecPenalty[i] / 10;
+    }
+
+    if (colIncPenalty[i] > 0 && colDecPenalty[i] > 0) {
+      monotonicityPenalty += colIncPenalty[i] * colDecPenalty[i] / 10;
+    }
   }
 
   const WEIGHT_FREE = 15.0;
