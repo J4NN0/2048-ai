@@ -1,5 +1,7 @@
 # 2048 Solver
 
+![first_win_2048.png](docs/first_win_2048.png)
+
 # Heuristic
 
 | Metric       | Weight | Typical Range | Impact Range |
