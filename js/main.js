@@ -1,5 +1,3 @@
-let moveDelay = 500;
-
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -16,18 +14,27 @@ async function runGameLoop() {
 
     const nextMove = getNextMove(gameUi.getGrid(), gameUi.getScore());
     gameUi.makeMove(nextMove);
-    await sleep(moveDelay);
+    await sleep(10);
   }
 }
 
 async function init() {
-  const moveSpeedSlider = document.getElementById('move-speed');
-  const speedValue = document.getElementById('speed-value');
+  const maxDepthInput = document.getElementById('max-depth');
+  const maxWidthInput = document.getElementById('max-width');
 
-  moveSpeedSlider.addEventListener('input', (e) => {
-    moveDelay = parseInt(e.target.value);
-    speedValue.textContent = `${moveDelay}ms`;
-  });
+  if (maxDepthInput) {
+    maxDepthInput.addEventListener('input', function() {
+      MAX_DEPTH = parseInt(this.value);
+      console.log('Search depth updated to:', MAX_DEPTH);
+    });
+  }
+
+  if (maxWidthInput) {
+    maxWidthInput.addEventListener('input', function() {
+      MAX_WIDTH = parseInt(this.value);
+      console.log('Search width updated to:', MAX_WIDTH);
+    });
+  }
 
   runGameLoop();
 }

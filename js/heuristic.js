@@ -1,5 +1,5 @@
-const MAX_DEPTH = 10; // Depth of the search tree
-const MAX_WIDTH = 15; // Number of nodes evaluated at each level
+let MAX_DEPTH = 10; // Depth of the search tree
+let MAX_WIDTH = 15; // Number of nodes evaluated at each level
 const VALID_MOVES = ['up', 'down', 'left', 'right'];
 
 function getNextMove(currentGrid, currentScore = 0) {
