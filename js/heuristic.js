@@ -56,7 +56,7 @@ function getNextMove(currentGrid, currentScore = 0) {
   }
 
   const bestNode = states[0];
-  console.log(`Evaluated ${totEvaluated} candidates. Chosen move: ${bestNode.firstMove} with expected goodness ${bestNode.heuristicGoodness}`);
+  console.log(`Evaluated ${totEvaluated} candidates. Chosen move: ${bestNode.firstMove} with expected goodness ${bestNode.heuristicGoodness.toFixed(2)}`);
 
   return bestNode.firstMove;
 }
