@@ -24,14 +24,30 @@ async function init() {
 
   if (maxDepthInput) {
     maxDepthInput.addEventListener('input', function() {
-      MAX_DEPTH = parseInt(this.value);
+      let value = parseInt(this.value);
+      if (value < 1) {
+        value = 1;
+        this.value = value;
+      } else if (value > 20) {
+        value = 20;
+        this.value = value;
+      }
+      MAX_DEPTH = value;
       console.log('Search depth updated to:', MAX_DEPTH);
     });
   }
 
   if (maxWidthInput) {
     maxWidthInput.addEventListener('input', function() {
-      MAX_WIDTH = parseInt(this.value);
+      let value = parseInt(this.value);
+      if (value < 1) {
+        value = 1;
+        this.value = value;
+      } else if (value > 50) {
+        value = 50;
+        this.value = value;
+      }
+      MAX_WIDTH = value;
       console.log('Search width updated to:', MAX_WIDTH);
     });
   }
