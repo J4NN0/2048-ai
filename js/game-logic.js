@@ -246,17 +246,29 @@ class Game2048Logic {
         return { row: randomCell.row, col: randomCell.col, value };
     }
 
-    canMove(direction) {
-        const sim = new Game2048Logic(this.getGrid(), this.score);
-        return sim.makeMove(direction);
-    }
-
-    canAnyMove() {
-        return ['up', 'down', 'left', 'right'].some(dir => this.canMove(dir));
-    }
-
     isGameOver() {
-        return !this.canAnyMove();
+        if (!this.isGridFull()) {
+            return false;
+        }
+
+        // Check if any adjacent tiles can be merged
+        for (let row = 0; row < this.GRID_SIZE; row++) {
+            for (let col = 0; col < this.GRID_SIZE; col++) {
+                const currentValue = this.grid[row][col];
+
+                // Check row
+                if (col < this.GRID_SIZE - 1 && this.grid[row][col + 1] === currentValue) {
+                    return false;
+                }
+
+                // Check column
+                if (row < this.GRID_SIZE - 1 && this.grid[row + 1][col] === currentValue) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     reset() {
