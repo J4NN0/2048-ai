@@ -35,14 +35,15 @@ class Game2048UI {
 
     makeMove(direction) {
         const moved = this.gameLogic.makeMove(direction);
-        
+
         if (moved) {
             this.gameLogic.addRandomTile();
-            
-            this.updateUI();
-            if (this.gameLogic.isGameOver()) {
-                this.showGameOver();
-            }
+        }
+
+        this.updateUI();
+
+        if (this.gameLogic.isGameOver()) {
+            this.showGameOver();
         }
     }
 
