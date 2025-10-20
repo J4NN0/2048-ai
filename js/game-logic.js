@@ -69,36 +69,33 @@ class Game2048Logic {
         let scoreIncrease = 0;
 
         for (let col = 0; col < this.GRID_SIZE; col++) {
-            // Compress: move all non-zero tiles up
-            let compressedCol = [];
+            // Collect non-zero tiles top->bottom
+            let vals = [];
             for (let row = 0; row < this.GRID_SIZE; row++) {
-                if (this.grid[row][col] !== 0) {
-                    compressedCol.push(this.grid[row][col]);
-                }
+                if (this.grid[row][col] !== 0) vals.push(this.grid[row][col]);
             }
 
-            // Merge adjacent identical tiles
-            for (let i = 0; i < compressedCol.length - 1; i++) {
-                if (compressedCol[i] === compressedCol[i + 1]) {
-                    compressedCol[i] *= 2;
-                    scoreIncrease += compressedCol[i];
-                    compressedCol.splice(i + 1, 1); // Remove the merged tile
+            // Merge: each tile may merge at most once
+            let mergedCol = [];
+            for (let i = 0; i < vals.length; i++) {
+                if (i + 1 < vals.length && vals[i] === vals[i + 1]) {
+                    const mergedVal = vals[i] * 2;
+                    mergedCol.push(mergedVal);
+                    scoreIncrease += mergedVal;
+                    i++; // skip the next since it was merged
                     this.merged = true;
+                } else {
+                    mergedCol.push(vals[i]);
                 }
             }
 
-            // Fill the column back with compressed values
-            let newCol = [...compressedCol];
-            while (newCol.length < this.GRID_SIZE) {
-                newCol.push(0);
-            }
+            // Pad with zeros
+            while (mergedCol.length < this.GRID_SIZE) mergedCol.push(0);
 
-            // Check if anything changed
+            // Write back and detect movement
             for (let row = 0; row < this.GRID_SIZE; row++) {
-                if (this.grid[row][col] !== newCol[row]) {
-                    this.moved = true;
-                }
-                this.grid[row][col] = newCol[row];
+                if (this.grid[row][col] !== mergedCol[row]) this.moved = true;
+                this.grid[row][col] = mergedCol[row];
             }
         }
 
@@ -112,36 +109,32 @@ class Game2048Logic {
         let scoreIncrease = 0;
 
         for (let col = 0; col < this.GRID_SIZE; col++) {
-            // Compress: collect all non-zero tiles
-            let compressedCol = [];
+            // Collect non-zero tiles bottom->top
+            let vals = [];
             for (let row = this.GRID_SIZE - 1; row >= 0; row--) {
-                if (this.grid[row][col] !== 0) {
-                    compressedCol.push(this.grid[row][col]);
-                }
+                if (this.grid[row][col] !== 0) vals.push(this.grid[row][col]);
             }
 
-            // Merge adjacent identical tiles
-            for (let i = 0; i < compressedCol.length - 1; i++) {
-                if (compressedCol[i] === compressedCol[i + 1]) {
-                    compressedCol[i] *= 2;
-                    scoreIncrease += compressedCol[i];
-                    compressedCol.splice(i + 1, 1); // Remove the merged tile
+            // Merge (on the reversed list), each tile may merge at most once
+            let mergedCol = [];
+            for (let i = 0; i < vals.length; i++) {
+                if (i + 1 < vals.length && vals[i] === vals[i + 1]) {
+                    const mergedVal = vals[i] * 2;
+                    mergedCol.push(mergedVal);
+                    scoreIncrease += mergedVal;
+                    i++; // skip next
                     this.merged = true;
+                } else {
+                    mergedCol.push(vals[i]);
                 }
             }
 
-            // Fill the column back (from bottom up)
-            let newCol = Array(this.GRID_SIZE).fill(0);
-            for (let i = 0; i < compressedCol.length; i++) {
-                newCol[this.GRID_SIZE - 1 - i] = compressedCol[i];
-            }
-
-            // Check if anything changed
-            for (let row = 0; row < this.GRID_SIZE; row++) {
-                if (this.grid[row][col] !== newCol[row]) {
-                    this.moved = true;
-                }
-                this.grid[row][col] = newCol[row];
+            // Pad and write back bottom-up
+            while (mergedCol.length < this.GRID_SIZE) mergedCol.push(0);
+            for (let i = 0; i < mergedCol.length; i++) {
+                const row = this.GRID_SIZE - 1 - i;
+                if (this.grid[row][col] !== mergedCol[i]) this.moved = true;
+                this.grid[row][col] = mergedCol[i];
             }
         }
 
@@ -155,36 +148,31 @@ class Game2048Logic {
         let scoreIncrease = 0;
 
         for (let row = 0; row < this.GRID_SIZE; row++) {
-            // Compress: collect all non-zero tiles
-            let compressedRow = [];
+            // Collect non-zero tiles left->right
+            let vals = [];
             for (let col = 0; col < this.GRID_SIZE; col++) {
-                if (this.grid[row][col] !== 0) {
-                    compressedRow.push(this.grid[row][col]);
-                }
+                if (this.grid[row][col] !== 0) vals.push(this.grid[row][col]);
             }
 
-            // Merge adjacent identical tiles
-            for (let i = 0; i < compressedRow.length - 1; i++) {
-                if (compressedRow[i] === compressedRow[i + 1]) {
-                    compressedRow[i] *= 2;
-                    scoreIncrease += compressedRow[i];
-                    compressedRow.splice(i + 1, 1); // Remove the merged tile
+            // Merge
+            let mergedRow = [];
+            for (let i = 0; i < vals.length; i++) {
+                if (i + 1 < vals.length && vals[i] === vals[i + 1]) {
+                    const mergedVal = vals[i] * 2;
+                    mergedRow.push(mergedVal);
+                    scoreIncrease += mergedVal;
+                    i++; // skip next
                     this.merged = true;
+                } else {
+                    mergedRow.push(vals[i]);
                 }
             }
 
-            // Fill the row back with compressed values
-            let newRow = [...compressedRow];
-            while (newRow.length < this.GRID_SIZE) {
-                newRow.push(0);
-            }
+            while (mergedRow.length < this.GRID_SIZE) mergedRow.push(0);
 
-            // Check if anything changed
             for (let col = 0; col < this.GRID_SIZE; col++) {
-                if (this.grid[row][col] !== newRow[col]) {
-                    this.moved = true;
-                }
-                this.grid[row][col] = newRow[col];
+                if (this.grid[row][col] !== mergedRow[col]) this.moved = true;
+                this.grid[row][col] = mergedRow[col];
             }
         }
 
@@ -198,36 +186,32 @@ class Game2048Logic {
         let scoreIncrease = 0;
 
         for (let row = 0; row < this.GRID_SIZE; row++) {
-            // Compress: collect all non-zero tiles (from right to left)
-            let compressedRow = [];
+            // Collect non-zero tiles right->left
+            let vals = [];
             for (let col = this.GRID_SIZE - 1; col >= 0; col--) {
-                if (this.grid[row][col] !== 0) {
-                    compressedRow.push(this.grid[row][col]);
-                }
+                if (this.grid[row][col] !== 0) vals.push(this.grid[row][col]);
             }
 
-            // Merge adjacent identical tiles
-            for (let i = 0; i < compressedRow.length - 1; i++) {
-                if (compressedRow[i] === compressedRow[i + 1]) {
-                    compressedRow[i] *= 2;
-                    scoreIncrease += compressedRow[i];
-                    compressedRow.splice(i + 1, 1); // Remove the merged tile
+            // Merge on reversed list
+            let mergedRow = [];
+            for (let i = 0; i < vals.length; i++) {
+                if (i + 1 < vals.length && vals[i] === vals[i + 1]) {
+                    const mergedVal = vals[i] * 2;
+                    mergedRow.push(mergedVal);
+                    scoreIncrease += mergedVal;
+                    i++; // skip next
                     this.merged = true;
+                } else {
+                    mergedRow.push(vals[i]);
                 }
             }
 
-            // Fill the row back (from right to left)
-            let newRow = Array(this.GRID_SIZE).fill(0);
-            for (let i = 0; i < compressedRow.length; i++) {
-                newRow[this.GRID_SIZE - 1 - i] = compressedRow[i];
-            }
+            while (mergedRow.length < this.GRID_SIZE) mergedRow.push(0);
 
-            // Check if anything changed
-            for (let col = 0; col < this.GRID_SIZE; col++) {
-                if (this.grid[row][col] !== newRow[col]) {
-                    this.moved = true;
-                }
-                this.grid[row][col] = newRow[col];
+            for (let i = 0; i < mergedRow.length; i++) {
+                const col = this.GRID_SIZE - 1 - i;
+                if (this.grid[row][col] !== mergedRow[i]) this.moved = true;
+                this.grid[row][col] = mergedRow[i];
             }
         }
 
