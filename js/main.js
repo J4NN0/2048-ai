@@ -12,46 +12,65 @@ async function runGameLoop() {
       continue;
     }
 
-    const nextMove = getNextMove(gameUi.getGrid(), gameUi.getScore());
+    const nextMove = getNextMove(gameUi.getState());
     gameUi.makeMove(nextMove);
     await sleep(10);
   }
 }
 
-async function init() {
+function addListeners() {
   const maxDepthInput = document.getElementById('max-depth');
-  const maxWidthInput = document.getElementById('max-width');
+  const chanceEmptyCellsThresholdInput = document.getElementById('chance-empty-cells-threshold');
+  const chanceSamplesInput = document.getElementById('chance-samples');
 
   if (maxDepthInput) {
     maxDepthInput.addEventListener('input', function() {
       let value = parseInt(this.value);
-      if (value < 1) {
+      if (isNaN(value) || value < 1) {
         value = 1;
         this.value = value;
-      } else if (value > 20) {
-        value = 20;
+      } else if (value > 8) {
+        value = 8;
         this.value = value;
       }
       MAX_DEPTH = value;
-      console.log('Search depth updated to:', MAX_DEPTH);
+      console.log('Max depth updated to:', MAX_DEPTH);
     });
   }
 
-  if (maxWidthInput) {
-    maxWidthInput.addEventListener('input', function() {
+  if (chanceEmptyCellsThresholdInput) {
+    chanceEmptyCellsThresholdInput.addEventListener('input', function() {
       let value = parseInt(this.value);
-      if (value < 1) {
+      if (isNaN(value) || value < 1) {
         value = 1;
         this.value = value;
-      } else if (value > 50) {
-        value = 50;
+      } else if (value > 12) {
+        value = 12;
         this.value = value;
       }
-      MAX_WIDTH = value;
-      console.log('Search width updated to:', MAX_WIDTH);
+      CHANCE_EMPTY_CELLS_THRESHOLD = value;
+      console.log('Empty cells threshold updated to:', CHANCE_EMPTY_CELLS_THRESHOLD);
     });
   }
 
+  if (chanceSamplesInput) {
+    chanceSamplesInput.addEventListener('input', function() {
+      let value = parseInt(this.value);
+      if (isNaN(value) || value < 1) {
+        value = 1;
+        this.value = value;
+      } else if (value > 10) {
+        value = 10;
+        this.value = value;
+      }
+      CHANCE_SAMPLES = value;
+      console.log('Chance samples updated to:', CHANCE_SAMPLES);
+    });
+  }
+}
+
+function init() {
+  addListeners();
   runGameLoop();
 }
 

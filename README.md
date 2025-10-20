@@ -1,6 +1,6 @@
 # 2048 AI
 
-![first_win_2048.png](docs/first_win_2048.png)
+![4096.png](docs/4096.png)
 
 # Heuristic
 

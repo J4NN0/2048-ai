@@ -1,73 +1,94 @@
-let MAX_DEPTH = 10; // Depth of the search tree
-let MAX_WIDTH = 15; // Number of nodes evaluated at each level
+let MAX_DEPTH = 6;
+let CHANCE_EMPTY_CELLS_THRESHOLD = 8;
+let CHANCE_SAMPLES = 5;
+
 const VALID_MOVES = ['up', 'down', 'left', 'right'];
 
-function getNextMove(currentGrid, currentScore = 0) {
-  let states = [{
-    grid: currentGrid,
-    score: currentScore,
-    firstMove: null
-  }];
-  let totEvaluated = 0;
+let totMoves = 0;
 
-  for (let depth = 0; depth < MAX_DEPTH; depth++) {
-    const candidates = [];
+function getNextMove(currentGameState) {
+  totMoves = 0;
+  const { 
+    move: bestMove, 
+    value: bestValue 
+  } = expectimax(currentGameState, MAX_DEPTH, false);
 
-    for (const node of states) {
-      for (const move of VALID_MOVES) {
-        const newState = new Game2048Logic(node.grid, node.score);
+  console.log(`Evaluated ${totMoves} moves. Chosen move: ${bestMove} with value ${bestValue.toFixed(2)}`);
 
-        const moved = newState.makeMove(move);
-        if (!moved) {
-          continue;
-        }
+  return bestMove;
+}
 
-        let expectedHeuristic = 0;
-        let emptyCells = newState.getEmptyCells();
-        if (emptyCells.length === 0) {
-          expectedHeuristic = calculateGoodness(newState);
-        } else {
-          for (const cell of emptyCells) {
-            const gameStateWith2 = generateGameStateWithNewTile(newState, cell, 2);
-            expectedHeuristic += (0.9 / emptyCells.length) * calculateGoodness(gameStateWith2);
+function expectimax(currentGameState, depth, chanceLayer) {
+  if (depth === 0 || currentGameState.isGameOver()) {
+    return { move: null, value: calculateGoodness(currentGameState) };
+  }
+  totMoves++;
 
-            const gameStateWith4 = generateGameStateWithNewTile(newState, cell, 4);
-            expectedHeuristic += (0.1 / emptyCells.length) * calculateGoodness(gameStateWith4);
-          }
-        }
+  if (!chanceLayer) {
+    let bestValue = -Infinity;
+    let bestMove = null;
 
-        newState.addRandomTile();
-        candidates.push({
-          grid: newState.getGrid(),
-          score: newState.getScore(),
-          firstMove: node.firstMove ?? move,
-          heuristicGoodness: expectedHeuristic
-        });
+    for (const move of VALID_MOVES) {
+      const newGameState = new Game2048Logic(currentGameState.getGrid(), currentGameState.getScore());
+      const moved = newGameState.makeMove(move);
+      if (!moved) {
+        continue;
+      }
+
+      const { value: childValue } = expectimax(newGameState, depth - 1, true);
+      if (childValue > bestValue) {
+        bestValue = childValue;
+        bestMove = move;
       }
     }
 
-    if (candidates.length === 0) {
-      continue;
-    }
-    candidates.sort((a, b) => b.heuristicGoodness - a.heuristicGoodness);
-    
-    states = candidates.slice(0, MAX_WIDTH);
-    totEvaluated += states.length;
+    return { move: bestMove, value: bestValue };
   }
 
-  const bestNode = states[0];
-  console.log(`Evaluated ${totEvaluated} candidates. Chosen move: ${bestNode.firstMove} with expected goodness ${bestNode.heuristicGoodness.toFixed(2)}`);
+  if (chanceLayer) {
+    const emptyCells = currentGameState.getEmptyCells();
+    if (emptyCells.length === 0) {
+      return { move: null, value: calculateGoodness(currentGameState) };
+    }
+    
+    let cellsToConsider = emptyCells;
+    let rescale = 1.0;
+    if (emptyCells.length > CHANCE_EMPTY_CELLS_THRESHOLD) {
+      cellsToConsider = sampleEmptyCells(emptyCells, Math.min(CHANCE_SAMPLES, emptyCells.length));
+      rescale = emptyCells.length / cellsToConsider.length;
+    }
 
-  return bestNode.firstMove;
+    const pCell = 1 / emptyCells.length;
+    let expectedValue = 0;
+    for (const cell of cellsToConsider) {
+      const gameStateWith2 = generateGameStateWithNewTile(currentGameState, cell, 2);
+      expectedValue += 0.9 * pCell * expectimax(gameStateWith2, depth - 1, false).value;
+
+      const gameStateWith4 = generateGameStateWithNewTile(currentGameState, cell, 4);
+      expectedValue += 0.1 * pCell * expectimax(gameStateWith4, depth - 1, false).value;
+    }
+
+    return { move: null, value: expectedValue * rescale };
+  }
+}
+
+function sampleEmptyCells(emptyCells, sampleSize) {
+  const tmpEmptyCells = emptyCells.slice();
+  const sampledEmptyCells = [];
+
+  for (let i = 0; i < sampleSize; i++) {
+    const rndIdx = Math.floor(Math.random() * tmpEmptyCells.length);
+    sampledEmptyCells.push(tmpEmptyCells[rndIdx]);
+    tmpEmptyCells.splice(rndIdx, 1);
+  }
+  
+  return sampledEmptyCells;
 }
 
 function generateGameStateWithNewTile(gameState, cell, value) {
   const newGrid = structuredClone(gameState.getGrid());
   newGrid[cell.row][cell.col] = value;
-
-  const newGameState = new Game2048Logic(newGrid, gameState.getScore());
-
-  return newGameState;
+  return new Game2048Logic(newGrid, gameState.getScore());
 }
 
 function calculateGoodness(gameState) {

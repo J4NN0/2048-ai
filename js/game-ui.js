@@ -16,12 +16,8 @@ class Game2048UI {
         this.startNewGame();
     }
 
-    getGrid() {
-        return this.gameLogic.getGrid();
-    }
-
-    getScore() {
-        return this.gameLogic.getScore();
+    getState() {
+        return this.gameLogic;
     }
 
     isGameOver() {
