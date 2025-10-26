@@ -2,10 +2,17 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function runGameLoop() {
+let isGameRunning = true;
+
+async function runGameLoop() {  
   const gameUi = new Game2048UI();
-  
+
   while (true) {
+    if (!isGameRunning) {
+      await sleep(100);
+      continue;
+    }
+    
     if (gameUi.isGameOver() && !gameUi.restartRequested) {
       console.log('Game over. Waiting for restart...');
       await sleep(1000);
@@ -22,6 +29,15 @@ function addListeners() {
   const maxDepthInput = document.getElementById('max-depth');
   const chanceEmptyCellsThresholdInput = document.getElementById('chance-empty-cells-threshold');
   const chanceSamplesInput = document.getElementById('chance-samples');
+  const aiToggleButton = document.getElementById('ai-toggle');
+
+  if (aiToggleButton) {
+    aiToggleButton.addEventListener('click', function() {
+      isGameRunning = !isGameRunning;
+      updateToggleButton();
+      console.log(isGameRunning ? 'AI resumed' : 'AI paused');
+    });
+  }
 
   if (maxDepthInput) {
     maxDepthInput.addEventListener('input', function() {
@@ -69,8 +85,25 @@ function addListeners() {
   }
 }
 
+function updateToggleButton() {
+  const aiToggleContainer = document.getElementById('ai-toggle');
+  const aiStatusElement = aiToggleContainer?.querySelector('.ai-status');
+  
+  if (aiToggleContainer && aiStatusElement) {
+    if (isGameRunning) {
+      aiStatusElement.textContent = 'Stop';
+      aiToggleContainer.classList.add('running');
+    } else {
+      aiStatusElement.textContent = 'Start';
+      aiToggleContainer.classList.remove('running');
+    }
+  }
+}
+
 function init() {
+  updateToggleButton();
   addListeners();
+  
   runGameLoop();
 }
 

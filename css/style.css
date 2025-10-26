@@ -145,6 +145,32 @@ h1 {
     border-radius: 2px;
 }
 
+.ai-toggle-container {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    user-select: none;
+}
+
+.ai-toggle-container:hover {
+    background: #cbb7a7;
+}
+
+.ai-toggle-container:active {
+    background: #ab9789;
+}
+
+.ai-toggle-container.running {
+    background: #dc5e2a;
+}
+
+.ai-toggle-container.running:hover {
+    background: #ec6e3a;
+}
+
+.ai-status {
+    pointer-events: none;
+}
+
 .game-container {
     position: relative;
     padding: 15px;

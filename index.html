@@ -20,16 +20,20 @@
     </header>
 
     <div class="ai-controls">
+      <div class="control-container ai-toggle-container" id="ai-toggle">
+        <div class="control-label" title="Click to start or stop the AI player">AI Control</div>
+        <div class="control-value ai-status">Stop</div>
+      </div>
       <div class="control-container">
-        <div class="control-label" title="Depth of the search tree">Max Depth</div>
+        <div class="control-label" title="Max depth of the search tree">Depth</div>
         <input type="number" id="max-depth" class="control-value" min="1" max="8" value="6">
       </div>
       <div class="control-container">
-        <div class="control-label" title="Threshold for sampling empty cells">Empty Cells Threshold</div>
+        <div class="control-label" title="Threshold for sampling empty cells">Threshold</div>
         <input type="number" id="chance-empty-cells-threshold" class="control-value" min="1" max="12" value="8">
       </div>
       <div class="control-container">
-        <div class="control-label" title="Number of cells to sample when above threshold">Chance Samples</div>
+        <div class="control-label" title="Number of cells to sample when above threshold">Samples</div>
         <input type="number" id="chance-samples" class="control-value" min="1" max="10" value="5">
       </div>
     </div>
