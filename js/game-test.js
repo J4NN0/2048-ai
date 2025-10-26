@@ -12,10 +12,10 @@ class Game2048Test {
 
     setTile(row, col, value) {
         const gameUi = this.initGame();
-        const gameLogic = gameUi.gameLogic;
+        const gameState = gameUi.gameState;
         
         gameUi.clearTiles();
-        gameLogic.grid[row - 1][col - 1] = value;
+        gameState.grid[row - 1][col - 1] = value;
         gameUi.updateUI();
         
         console.log(`Set tile at position (${row}, ${col}) to value ${value}`);
@@ -23,7 +23,7 @@ class Game2048Test {
 
     initBoard(gridArray) {
         const gameUi = this.initGame();
-        const gameLogic = gameUi.gameLogic;
+        const gameState = gameUi.gameState;
         
         if (!Array.isArray(gridArray) || gridArray.length !== 4) {
             console.error('Grid must be a 4x4 array');
@@ -38,7 +38,7 @@ class Game2048Test {
         }
         
         gameUi.clearTiles();
-        gameLogic.grid = JSON.parse(JSON.stringify(gridArray));
+        gameState.grid = JSON.parse(JSON.stringify(gridArray));
         gameUi.updateUI();
         
         console.log('Board initialized with custom grid:', gridArray);
@@ -93,8 +93,8 @@ class Game2048Test {
             console.log('Game not initialized');
             return null;
         }
-        
-        const grid = this.gameUi.gameLogic.grid;
+
+        const grid = this.gameUi.gameState.grid;
         console.log('Current board state:');
         console.table(grid);
         return grid;
@@ -108,7 +108,7 @@ class Game2048Test {
         const gameUi = this.initGame();
         
         for (let i = 0; i < count; i++) {
-            gameUi.gameLogic.addRandomTile();
+            gameUi.gameState.addRandomTile();
         }
         
         gameUi.updateUI();
@@ -118,12 +118,12 @@ class Game2048Test {
     moveUp() {
         const gameUi = this.initGame();
         console.log('Making move: up');
-        
-        const beforeScore = gameUi.gameLogic.score;
+
+        const beforeScore = gameUi.gameState.score;
         const moved = gameUi.makeMove('up');
         
         if (moved) {
-            const afterScore = gameUi.gameLogic.score;
+            const afterScore = gameUi.gameState.score;
             const scoreGain = afterScore - beforeScore;
             console.log(`Move successful! Score: ${beforeScore} → ${afterScore} (+${scoreGain})`);
             this.getCurrentBoard();
@@ -137,12 +137,12 @@ class Game2048Test {
     moveDown() {
         const gameUi = this.initGame();
         console.log('Making move: down');
-        
-        const beforeScore = gameUi.gameLogic.score;
+
+        const beforeScore = gameUi.gameState.score;
         const moved = gameUi.makeMove('down');
         
         if (moved) {
-            const afterScore = gameUi.gameLogic.score;
+            const afterScore = gameUi.gameState.score;
             const scoreGain = afterScore - beforeScore;
             console.log(`Move successful! Score: ${beforeScore} → ${afterScore} (+${scoreGain})`);
             this.getCurrentBoard();
@@ -156,12 +156,12 @@ class Game2048Test {
     moveLeft() {
         const gameUi = this.initGame();
         console.log('Making move: left');
-        
-        const beforeScore = gameUi.gameLogic.score;
+
+        const beforeScore = gameUi.gameState.score;
         const moved = gameUi.makeMove('left');
         
         if (moved) {
-            const afterScore = gameUi.gameLogic.score;
+            const afterScore = gameUi.gameState.score;
             const scoreGain = afterScore - beforeScore;
             console.log(`Move successful! Score: ${beforeScore} → ${afterScore} (+${scoreGain})`);
             this.getCurrentBoard();
@@ -175,12 +175,12 @@ class Game2048Test {
     moveRight() {
         const gameUi = this.initGame();
         console.log('Making move: right');
-        
-        const beforeScore = gameUi.gameLogic.score;
+
+        const beforeScore = gameUi.gameState.score;
         const moved = gameUi.makeMove('right');
         
         if (moved) {
-            const afterScore = gameUi.gameLogic.score;
+            const afterScore = gameUi.gameState.score;
             const scoreGain = afterScore - beforeScore;
             console.log(`Move successful! Score: ${beforeScore} → ${afterScore} (+${scoreGain})`);
             this.getCurrentBoard();

@@ -77,7 +77,7 @@ function expectimax(currentGameState, depth, chanceLayer) {
 }
 
 function cloneState(state) {
-  return new Game2048Logic(structuredClone(state.getGrid()), state.getScore());
+  return new Game2048State(structuredClone(state.getGrid()), state.getScore());
 }
 
 function sampleEmptyCells(emptyCells, sampleSize) {
@@ -96,7 +96,7 @@ function sampleEmptyCells(emptyCells, sampleSize) {
 function generateGameStateWithNewTile(gameState, cell, value) {
   const newGrid = structuredClone(gameState.getGrid());
   newGrid[cell.row][cell.col] = value;
-  return new Game2048Logic(newGrid, gameState.getScore());
+  return new Game2048State(newGrid, gameState.getScore());
 }
 
 function calculateGoodness(gameState) {

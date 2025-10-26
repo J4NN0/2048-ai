@@ -8,7 +8,7 @@ class Game2048UI {
         this.tileContainer = document.getElementById('tile-container');
         this.tiles = [];
 
-        this.gameLogic = new Game2048Logic();
+        this.gameState = new Game2048State();
         this.keepPlaying = false;
         this.restartRequested = false;
 
@@ -17,11 +17,11 @@ class Game2048UI {
     }
 
     getState() {
-        return this.gameLogic;
+        return this.gameState;
     }
 
     isGameOver() {
-        return this.gameLogic.isGameOver();
+        return this.gameState.isGameOver();
     }
 
     bindEvents() {  
@@ -30,13 +30,13 @@ class Game2048UI {
     }
 
     makeMove(direction) {
-        const moved = this.gameLogic.makeMove(direction);
+        const moved = this.gameState.makeMove(direction);
 
         if (moved) {
-            this.gameLogic.addRandomTile();
+            this.gameState.addRandomTile();
             this.updateUI();
 
-            if (this.gameLogic.isGameOver()) {
+            if (this.gameState.isGameOver()) {
                 this.showGameOver();
             }
         }
@@ -46,7 +46,7 @@ class Game2048UI {
 
     updateUI() {
         this.clearTiles();
-        const grid = this.gameLogic.getGrid();
+        const grid = this.gameState.getGrid();
 
         // Create tiles for non-zero values
         for (let row = 0; row < 4; row++) {
@@ -58,11 +58,11 @@ class Game2048UI {
             }
         }
 
-        this.scoreContainer.textContent = this.gameLogic.getScore();
+        this.scoreContainer.textContent = this.gameState.getScore();
     }
 
     startNewGame() {
-        this.gameLogic.startNewGame();
+        this.gameState.startNewGame();
         this.keepPlaying = false;
         this.hideGameOver();
         this.updateUI();

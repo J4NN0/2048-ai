@@ -1,4 +1,4 @@
-class Game2048Logic {
+class Game2048State {
     constructor(grid = null, score = 0) {
         this.GRID_SIZE = 4;
         this.grid = grid ? grid.map(row => [...row]) : this.initializeGrid();
@@ -271,5 +271,5 @@ class Game2048Logic {
 
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Game2048Logic;
+    module.exports = Game2048State;
 }
