@@ -21,7 +21,46 @@ Using the weights above, it evaluates all possible player moves (with a few exce
 Each board is scored using a weighted sum of heuristic factors such as free space, smoothness, monotonicity, merges, and border position (the higher the score, the better the board configuration).
 
 Basically, at each node:
+
 - **Max layer:** chooses the move with the best expected value.
 - **Chance layer:** averages over all possible new tile spawns.
 
-The recursion depth controls how far the search algorithm "look" ahead. 
+The recursion depth controls how far the search algorithm "look" ahead.
+
+## Testing
+
+The project includes a test utility class (`js/game-test.js`) that provides convenient functions for testing and debugging the game logic (e.g., set up specific board states to test the game over specific conditions). It can be used from the browser's developer console.
+
+### Board Setup Functions
+
+```javascript
+// Set individual tiles (1-4 based row/col indexing)
+setTile(1, 1, 4096);  // Set top-left to 4096
+
+// Initialize custom board
+initBoard([
+    [2048, 1024, 512, 256],
+    [128, 64, 32, 16], 
+    [8, 4, 2, 0],
+    [0, 0, 0, 0]
+]);
+
+// Preset test scenarios
+testHighValues();  // Load board with high value tiles
+testNearWin();     // Load near-win scenario
+testGameOver();    // Load game over scenario
+clearBoard();      // Empty board
+```
+
+### Move Functions
+
+```javascript
+// Make individual moves
+moveUp();
+moveDown(); 
+moveLeft();
+moveRight();
+
+// Check current state
+getCurrentBoard();  // Display board in console
+```
