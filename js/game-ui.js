@@ -7,11 +7,11 @@ class Game2048UI {
         this.keepPlayingButton = document.getElementById('keep-playing-btn');
         this.tileContainer = document.getElementById('tile-container');
         this.tiles = [];
-        
+
         this.gameLogic = new Game2048Logic();
         this.keepPlaying = false;
         this.restartRequested = false;
-        
+
         this.bindEvents();
         this.startNewGame();
     }
@@ -24,7 +24,7 @@ class Game2048UI {
         return this.gameLogic.isGameOver();
     }
 
-    bindEvents() {
+    bindEvents() {  
         this.retryButton.addEventListener('click', () => this.restart());
         this.keepPlayingButton.addEventListener('click', () => this.continueGame());
     }
@@ -34,19 +34,20 @@ class Game2048UI {
 
         if (moved) {
             this.gameLogic.addRandomTile();
+            this.updateUI();
+
+            if (this.gameLogic.isGameOver()) {
+                this.showGameOver();
+            }
         }
 
-        this.updateUI();
-
-        if (this.gameLogic.isGameOver()) {
-            this.showGameOver();
-        }
+        return moved;
     }
 
     updateUI() {
         this.clearTiles();
         const grid = this.gameLogic.getGrid();
-        
+
         // Create tiles for non-zero values
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 4; col++) {
@@ -56,7 +57,7 @@ class Game2048UI {
                 }
             }
         }
-        
+
         this.scoreContainer.textContent = this.gameLogic.getScore();
     }
 
@@ -70,18 +71,25 @@ class Game2048UI {
 
     createTile(row, col, value, isNew = false) {
         const tile = document.createElement('div');
-        tile.className = `tile tile-${value} tile-position-${row}-${col}`;
+
+        const tileClass = value >= 4096 ? 'tile-super' : `tile-${value}`;
+        tile.className = `tile ${tileClass} tile-position-${row}-${col}`;
+
+        if (value >= 4096) {
+            tile.setAttribute('data-length', value.toString().length);
+        }
+
         if (isNew) {
             tile.classList.add('tile-new');
         }
         tile.textContent = value;
-        
+
         this.tileContainer.appendChild(tile);
-        
+
         // Store tile data
         const tileData = { element: tile, row, col, value };
         this.tiles.push(tileData);
-        
+
         return tileData;
     }
 

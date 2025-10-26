@@ -317,9 +317,9 @@ h1 {
 }
 
 .tile-super {
-    background: #3c3a32;
-    color: #f9f6f2;
-    font-size: 30px;
+    background: #000000;
+    color: #ffffff;
+    font-size: 25px;
 }
 
 .game-explanation {
