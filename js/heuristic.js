@@ -29,7 +29,7 @@ function expectimax(currentGameState, depth, chanceLayer) {
     let bestMove = null;
 
     for (const move of VALID_MOVES) {
-      const newGameState = new Game2048Logic(currentGameState.getGrid(), currentGameState.getScore());
+      const newGameState = cloneState(currentGameState);
       const moved = newGameState.makeMove(move);
       if (!moved) {
         continue;
@@ -42,6 +42,10 @@ function expectimax(currentGameState, depth, chanceLayer) {
       }
     }
 
+    if (bestMove === null) {
+      // No legal moves from this node: treat as terminal and return heuristic
+      return { move: null, value: calculateGoodness(currentGameState) };
+    }
     return { move: bestMove, value: bestValue };
   }
 
@@ -70,6 +74,10 @@ function expectimax(currentGameState, depth, chanceLayer) {
 
     return { move: null, value: expectedValue * rescale };
   }
+}
+
+function cloneState(state) {
+  return new Game2048Logic(structuredClone(state.getGrid()), state.getScore());
 }
 
 function sampleEmptyCells(emptyCells, sampleSize) {
