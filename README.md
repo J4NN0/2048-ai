@@ -2,7 +2,7 @@
 
 An AI player for the 2048 game, using the expectimax algorithm combined with heuristic evaluation to select best future moves. The algorithm explores possible moves, averages over random tile spawns, and scores each resulting board to pick the best action.
 
-![8191.png](docs/8191.png)
+![8192.png](docs/8192.png)
 
 ## Heuristic
 
