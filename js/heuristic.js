@@ -27,7 +27,7 @@ function getNextMove(currentGameState) {
 
   console.log(`Evaluated ${totMoves} moves. Chosen move: ${bestMove} with goodness ${bestValue.toFixed(2)}`);
 
-  return bestMove;
+  return { move: bestMove, value: bestValue, totalMoves: totMoves };
 }
 
 function expectimax(currentState, depth, chanceLayer) {

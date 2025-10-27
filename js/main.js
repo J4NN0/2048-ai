@@ -1,10 +1,10 @@
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+const bestMoveElement = document.getElementById('best-move');
+const goodnessValueElement = document.getElementById('goodness-value');
+const totalMovesElement = document.getElementById('total-moves');
 
 let isGameRunning = true;
 
-async function runGameLoop() {  
+async function runGameLoop() {
   const gameUi = new Game2048UI();
 
   while (true) {
@@ -12,23 +12,42 @@ async function runGameLoop() {
       await sleep(100);
       continue;
     }
-    
+
     if (gameUi.isGameOver() && !gameUi.restartRequested) {
       console.log('Game over. Waiting for restart...');
       await sleep(1000);
       continue;
     }
 
-    const nextMove = getNextMove(gameUi.getState());
-    gameUi.makeMove(nextMove);
+    const result = getNextMove(gameUi.getState());
+    updateAIDisplay(result.move.toUpperCase(), result.value.toFixed(2), result.totalMoves);
+    gameUi.makeMove(result.move);
     await sleep(10);
   }
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function updateAIDisplay(bestMove, goodnessValue, totalMoves) {
+  if (bestMoveElement) {
+    bestMoveElement.textContent = bestMove;
+  }
+
+  if (goodnessValueElement) {
+    goodnessValueElement.textContent = goodnessValue;
+  }
+
+  if (totalMovesElement) {
+    totalMovesElement.textContent = totalMoves;
+  }
+}
+
 function addListeners() {
-  const maxDepthInput = document.getElementById('max-depth');
-  const chanceEmptyCellsThresholdInput = document.getElementById('chance-empty-cells-threshold');
-  const chanceSamplesInput = document.getElementById('chance-samples');
+  const maxDepthInput = document.getElementById('depth');
+  const thresholdInput = document.getElementById('threshold');
+  const samplesInput = document.getElementById('samples');
   const aiToggleButton = document.getElementById('ai-toggle');
 
   if (aiToggleButton) {
@@ -54,8 +73,8 @@ function addListeners() {
     });
   }
 
-  if (chanceEmptyCellsThresholdInput) {
-    chanceEmptyCellsThresholdInput.addEventListener('input', function() {
+  if (thresholdInput) {
+    thresholdInput.addEventListener('input', function() {
       let value = parseInt(this.value);
       if (isNaN(value) || value < 1) {
         value = 1;
@@ -69,8 +88,8 @@ function addListeners() {
     });
   }
 
-  if (chanceSamplesInput) {
-    chanceSamplesInput.addEventListener('input', function() {
+  if (samplesInput) {
+    samplesInput.addEventListener('input', function() {
       let value = parseInt(this.value);
       if (isNaN(value) || value < 1) {
         value = 1;
@@ -88,7 +107,7 @@ function addListeners() {
 function updateToggleButton() {
   const aiToggleContainer = document.getElementById('ai-toggle');
   const aiStatusElement = aiToggleContainer?.querySelector('.ai-status');
-  
+
   if (aiToggleContainer && aiStatusElement) {
     if (isGameRunning) {
       aiStatusElement.textContent = 'Stop';
@@ -103,7 +122,7 @@ function updateToggleButton() {
 function init() {
   updateToggleButton();
   addListeners();
-  
+
   runGameLoop();
 }
 

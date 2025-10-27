@@ -348,9 +348,38 @@ h1 {
     font-size: 25px;
 }
 
-.game-explanation {
-    margin-top: 50px;
-    line-height: 24px;
+.ai-info {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.ai-stat {
+    background: #bbada0;
+    padding: 8px 12px;
+    border-radius: 3px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 120px;
+    text-align: center;
+}
+
+.ai-stat .label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #eee4da;
+    margin-bottom: 3px;
+    line-height: 1;
+}
+
+.ai-stat .value {
+    display: block;
+    font-size: 16px;
+    line-height: 1;
+    color: white;
 }
 
 hr {
