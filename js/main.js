@@ -1,5 +1,5 @@
 const bestMoveElement = document.getElementById('best-move');
-const goodnessValueElement = document.getElementById('goodness-value');
+const goodnessElement = document.getElementById('goodness');
 const totalMovesElement = document.getElementById('total-moves');
 
 let isGameRunning = true;
@@ -35,8 +35,8 @@ function updateAIDisplay(bestMove, goodnessValue, totalMoves) {
     bestMoveElement.textContent = bestMove;
   }
 
-  if (goodnessValueElement) {
-    goodnessValueElement.textContent = goodnessValue;
+  if (goodnessElement) {
+    goodnessElement.textContent = goodnessValue;
   }
 
   if (totalMovesElement) {
