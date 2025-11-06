@@ -67,6 +67,8 @@ h1 {
     gap: 20px;
     justify-content: center;
     width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .control-container {
@@ -436,6 +438,56 @@ footer {
     .container {
         width: 280px;
         margin: 0 auto;
+    }
+
+    .ai-controls {
+        width: 280px;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .control-container {
+        min-width: 60px;
+        height: 40px;
+        padding: 5px;
+        font-size: 16px;
+        flex: 1;
+        max-width: calc(50% - 4px);
+    }
+
+    .control-label {
+        font-size: 10px;
+        line-height: 10px;
+        margin-bottom: 1px;
+    }
+
+    .control-value {
+        font-size: 14px;
+    }
+
+    .ai-info {
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 280px;
+    }
+
+    .ai-stat {
+        min-width: 85px;
+        padding: 5px 6px;
+        font-size: 11px;
+        flex: 0 1 auto;
+        margin-bottom: 6px;
+    }
+
+    .ai-stat .label {
+        font-size: 8px;
+        margin-bottom: 2px;
+    }
+
+    .ai-stat .value {
+        font-size: 13px;
     }
 
     h1 {
